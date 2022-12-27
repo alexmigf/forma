@@ -2,7 +2,7 @@
 /**
  * Main Class file for creating a form.
  *
- * @package Alexmigf
+ * @package Alexmigf\Forma
  */
 
  namespace Alexmigf\Forma;
@@ -12,14 +12,14 @@
  *
  * @package alexmigf\forma
  *
- * @property string $package
- * @property string $id
- * @property string $slug
- * @property array  $args
- * @property array  $sections
- * @property array  $fields
- * @property array  $hidden
- * @property array  $nonce
+ * @property string     $package
+ * @property string     $id
+ * @property string     $slug
+ * @property array      $args
+ * @property array      $sections
+ * @property array      $fields
+ * @property array      $hidden
+ * @property array|null $nonce
  */
 
 class Forma {
@@ -122,7 +122,7 @@ class Forma {
 		}
 		do_action( "{$this->package}/before_render", $this );
 		?>
-		<div id="<?= $this->slug.'-form'; ?>">
+		<div id="<?= $this->slug . '-form'; ?>" class="<?= "{$this->package}_form" ?>">
 			<?php if ( ! empty( $this->args['title'] ) ) : ?>
 			<h3><?= $this->args['title']; ?></h3>
 			<?php endif; ?>
@@ -464,7 +464,7 @@ class Forma {
 			checked( $value, 'on', false ),
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
-		$html .= ! empty( $desc ) ? sprintf( '<p>%1$s</p>', esc_html( $desc ) ) : '';
+		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
 		$html .= '</div>';
 
 		return $html;
@@ -505,7 +505,7 @@ class Forma {
 			! empty( $pattern ) ? 'pattern="'.esc_attr( $pattern ).'"' : '',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
-		$html .= ! empty( $desc ) ? sprintf( '<p>%1$s</p>', esc_html( $desc ) ) : '';
+		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
 		$html .= '</div>';
 
 		return $html;
@@ -546,7 +546,7 @@ class Forma {
 			! empty( $pattern ) ? 'pattern="'.esc_attr( $pattern ).'"' : '',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
-		$html .= ! empty( $desc ) ? sprintf( '<p>%1$s</p>', esc_html( $desc ) ) : '';
+		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
 		$html .= '</div>';
 
 		return $html;
@@ -585,7 +585,7 @@ class Forma {
 			! empty( $value ) ? esc_attr( $value ) : '',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
-		$html .= ! empty( $desc ) ? sprintf( '<p>%1$s</p>', esc_html( $desc ) ) : '';
+		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
 		$html .= '</div>';
 
 		return $html;
@@ -624,7 +624,7 @@ class Forma {
 			! empty( $value ) ? esc_attr( $value ) : '',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
-		$html .= ! empty( $desc ) ? sprintf( '<p>%1$s</p>', esc_html( $desc ) ) : '';
+		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
 		$html .= '</div>';
 
 		return $html;
@@ -681,7 +681,7 @@ class Forma {
 			}
 		}
 		$html .= '</select>';
-		$html .= ! empty( $desc ) ? sprintf( '<p>%1$s</p>', esc_html( $desc ) ) : '';
+		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
 		$html .= '</div>';
 
 		return $html;
@@ -724,7 +724,7 @@ class Forma {
 			! empty( $required ) && true === $required ? 'required' : '',
 			! empty( $value ) ? esc_attr( $value ) : ''
 		);
-		$html .= ! empty( $desc ) ? sprintf( '<p>%1$s</p>', esc_html( $desc ) ) : '';
+		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
 		$html .= '</div>';
 
 		return $html;
@@ -765,7 +765,7 @@ class Forma {
 			! empty( $pattern ) ? 'pattern="'.esc_attr( $pattern ).'"' : 'pattern="https://.*"',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
-		$html .= ! empty( $desc ) ? sprintf( '<p>%1$s</p>', esc_html( $desc ) ) : '';
+		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
 		$html .= '</div>';
 
 		return $html;
@@ -806,7 +806,7 @@ class Forma {
 			! empty( $pattern ) ? 'pattern="'.esc_attr( $pattern ).'"' : '',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
-		$html .= ! empty( $desc ) ? sprintf( '<p>%1$s</p>', esc_html( $desc ) ) : '';
+		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
 		$html .= '</div>';
 
 		return $html;
