@@ -5,7 +5,7 @@
  * @package Alexmigf\Forma
  */
 
- namespace Alexmigf\Forma;
+ namespace Alexmigf;
 
 /**
  * Class Forma
@@ -264,7 +264,7 @@ class Forma {
 			call_user_func( $this->args['callback'], stripslashes_deep( $_REQUEST ) );
 		}
 
-		wp_die();
+		return;
 	}
 
 	/**
