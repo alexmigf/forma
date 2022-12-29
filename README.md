@@ -123,7 +123,7 @@ $forma->render();
 
 ## Passing values to fields
 
-If you require to display the current saved data in the fields it's also possible.
+If you require to display the current saved data in the fields.
 
 ```php
 
