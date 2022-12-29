@@ -109,7 +109,7 @@ class Forma {
 	 * Render the form.
 	 */
 	public function render() {
-		if ( ! $this->args['ajax'] ) {
+		if ( ! $this->args['ajax'] && empty( $this->args['action'] ) ) {
 			$this->process();
 			$this->is_submitted();
 		}
