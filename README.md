@@ -135,42 +135,42 @@ function form_fields( $data = [] ) {
 		[
 			'type'     => 'text',
 			'id'       => 'first_name',
-			'label'    => __( 'First name', 'phone-book' ),
+			'label'    => __( 'First name', 'textdomain' ),
 			'value'    => isset( $data['first_name'] ) ? $data['first_name'] : '',
 			'required' => true,
 		],
 		[
 			'type'     => 'text',
 			'id'       => 'last_name',
-			'label'    => __( 'Last name', 'phone-book' ),
+			'label'    => __( 'Last name', 'textdomain' ),
 			'value'    => isset( $data['last_name'] ) ? $data['last_name'] : '',
 			'required' => true,
 		],
 		[
 			'type'     => 'text',
 			'id'       => 'company',
-			'label'    => __( 'Company', 'phone-book' ),
+			'label'    => __( 'Company', 'textdomain' ),
 			'value'    => isset( $data['company'] ) ? $data['company'] : '',
 			'required' => false,
 		],
 		[
 			'type'     => 'text',
 			'id'       => 'position',
-			'label'    => __( 'Position', 'phone-book' ),
+			'label'    => __( 'Position', 'textdomain' ),
 			'value'    => isset( $data['position'] ) ? $data['position'] : '',
 			'required' => false,
 		],
 		[
 			'type'     => 'email',
 			'id'       => 'email',
-			'label'    => __( 'Email', 'phone-book' ),
+			'label'    => __( 'Email', 'textdomain' ),
 			'value'    => isset( $data['email'] ) ? $data['email'] : '',
 			'required' => false,
 		],
 		[
 			'type'     => 'tel',
 			'id'       => 'phone_number',
-			'label'    => __( 'Phone number', 'phone-book' ),
+			'label'    => __( 'Phone number', 'textdomain' ),
 			'value'    => isset( $data['phone_number'] ) ? $data['phone_number'] : '',
 			'required' => false,
 		],
@@ -229,7 +229,7 @@ Callback handling example:
 ```php
 function ajax_new_form_process_callback( $request ) {
 	// $request contains the data to be processed
-	// do your stuff and then return data to the AJAX function
+	// do your stuff and then return the data to the AJAX function
 
 	$response = false;
 	if ( ! empty( $request ) ) {
