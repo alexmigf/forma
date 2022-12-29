@@ -49,7 +49,7 @@ $forma->add_field( $field, $section_id = 'profile' );
 
 /* or */
 
-$forma->add_field( $field ); // fields without section became 'orfan', non grouped
+$forma->add_field( $field ); // fields without section became 'orphans', non grouped
 ```
 
 Add multiple fields at once

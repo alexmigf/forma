@@ -133,7 +133,7 @@ class Forma {
 				<?php
 					do_action( "{$this->package}/before/form/fields", $this );
 					$this->build_sections();
-					$this->build_orfan_fields();
+					$this->build_orphan_fields();
 					$this->build_hidden_fields();
 					$this->build_nonce_field();
 					$this->build_submit_field();
@@ -173,7 +173,7 @@ class Forma {
 			if ( ! empty( $section_id ) ) {
 				$this->fields[$section_id][] = $field;
 			} else {
-				$this->fields['orfan'][] = $field;
+				$this->fields['orphan'][] = $field;
 			}
 		}
 	}
@@ -306,11 +306,11 @@ class Forma {
 	}
 
 	/**
-	 * Build form orfan fields
+	 * Build form orphan fields
 	 */
-	protected function build_orfan_fields() {
-		if ( ! empty( $this->fields['orfan'] ) ) {
-			foreach ( $this->fields['orfan'] as $field ) {
+	protected function build_orphan_fields() {
+		if ( ! empty( $this->fields['orphan'] ) ) {
+			foreach ( $this->fields['orphan'] as $field ) {
 				$this->build_field( $field );
 			}
 		}
