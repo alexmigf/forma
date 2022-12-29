@@ -86,17 +86,18 @@ class Forma {
 	 * @param string $id   The ID of the form.
 	 * @param array  $args The form options.
 	 */
-	public function __construct( $id, array $args ) {
+	public function __construct( $id, $args = array() ) {
 		$this->id   = ! empty( $id ) ? esc_attr( $id ) : wp_rand( 1, 16 );
-		$this->slug = "{$this->package}-{$this->id}";
+		$this->slug = "{$this->package}/{$this->id}";
 		$this->args = [
-			'title'    => isset( $args['title'] ) ? esc_attr( $args['title'] ) : '',
-			'classes'  => isset( $args['classes'] ) ? esc_attr( $args['classes'] ) : '',
-			'action'   => isset( $args['action'] ) ? esc_attr( $args['action'] ) : '',
-			'method'   => isset( $args['method'] ) && in_array( strtolower( $args['method'] ), array( 'post', 'get' ) ) ? esc_attr( strtolower( $args['method'] ) ) : 'post',
-			'ajax'     => isset( $args['ajax'] ) && true === $args['ajax'] ? true : false,
-			'callback' => isset( $args['callback'] ) && is_array( $args['callback'] ) && count( $args['callback'] ) == 2 ? $args['callback'] : null,
-			'nonce'    => isset( $args['nonce'] ) && true === $args['nonce'] ? $this->add_nonce_field() : false,
+			'title'       => isset( $args['title'] ) ? esc_attr( $args['title'] ) : '',
+			'classes'     => isset( $args['classes'] ) ? esc_attr( $args['classes'] ) : '',
+			'action'      => isset( $args['action'] ) ? esc_attr( $args['action'] ) : '',
+			'method'      => isset( $args['method'] ) && in_array( strtolower( $args['method'] ), [ 'post', 'get' ] ) ? esc_attr( strtolower( $args['method'] ) ) : 'post',
+			'ajax'        => isset( $args['ajax'] ) && true === $args['ajax'] ? true : false,
+			'callback'    => isset( $args['callback'] ) && is_array( $args['callback'] ) && count( $args['callback'] ) == 2 ? $args['callback'] : null,
+			'nonce'       => isset( $args['nonce'] ) && true === $args['nonce'] ? $this->add_nonce_field() : false,
+			'button_text' => isset( $args['button_text'] ) ? esc_attr( $args['button_text'] ) : __( 'Send', $this->package ),
 		];
 
 		if ( $this->args['ajax'] ) {
@@ -108,6 +109,10 @@ class Forma {
 	 * Render the form.
 	 */
 	public function render() {
+		if ( ! $this->args['ajax'] ) {
+			$this->process();
+			$this->is_submitted();
+		}
 		echo $this->build();
 	}
 
@@ -116,33 +121,29 @@ class Forma {
 	 */
 	public function build() {
 		ob_start();
-		if ( ! $this->args['ajax'] ) {
-			$this->process();
-			$this->is_submitted();
-		}
-		do_action( "{$this->package}/before_render", $this );
+		do_action( "{$this->package}/before/render", $this );
 		?>
-		<div id="<?= $this->slug . '-form'; ?>" class="<?= "{$this->package}_form" ?>">
+		<div id="<?= "{$this->slug}/form"; ?>" class="<?= "{$this->package}/form" ?>">
 			<?php if ( ! empty( $this->args['title'] ) ) : ?>
 			<h3><?= $this->args['title']; ?></h3>
 			<?php endif; ?>
-			<?php do_action( "{$this->package}/before_form", $this ); ?>
+			<?php do_action( "{$this->package}/before/form", $this ); ?>
 			<form id="<?= $this->slug; ?>" class="<?= $this->args['classes']; ?>" action="<?= $this->args['action']; ?>" method="<?= $this->args['method']; ?>">
-				<input type="hidden" name="<?= $this->slug.'-submitted'; ?>" value="1"></input>
+				<input type="hidden" name="<?= "{$this->slug}/submitted"; ?>" value="1"></input>
 				<?php
-					do_action( "{$this->package}/before_form_fields", $this );
+					do_action( "{$this->package}/before/form/fields", $this );
 					$this->build_sections();
 					$this->build_orfan_fields();
 					$this->build_hidden_fields();
 					$this->build_nonce_field();
 					$this->build_submit_field();
-					do_action( "{$this->package}/after_form_fields", $this );
+					do_action( "{$this->package}/after/form/fields", $this );
 				?>
 			</form>
-			<?php do_action( "{$this->package}/after_form", $this ); ?>
+			<?php do_action( "{$this->package}/after/form", $this ); ?>
 		</div>
 		<?php
-		do_action( "{$this->package}/after_render", $this );
+		do_action( "{$this->package}/after/render", $this );
 		return ob_get_clean();
 	}
 
@@ -225,8 +226,8 @@ class Forma {
 	public function is_submitted() {
 		$notice = [];
 		foreach ( [ 'error', 'success' ] as $type ) {
-			if ( isset( $_REQUEST["{$this->package}/{$type}"] ) ) {
-				$notice['message'] = sanitize_text_field( $_REQUEST["{$this->package}/{$type}"] );
+			if ( isset( $_REQUEST["{$this->package}/process/{$type}"] ) ) {
+				$notice['message'] = sanitize_text_field( $_REQUEST["{$this->package}/process/{$type}"] );
 				$notice['type']    = $type;
 				break;
 			}
@@ -237,6 +238,7 @@ class Forma {
 				<p><?= $notice['message']; ?></p>
 			</div>
 			<?php
+			echo "<meta http-equiv='refresh' content='2'>";
 		}
 	}
 
@@ -244,27 +246,50 @@ class Forma {
 	 * Process the form data
 	 */
 	protected function process() {
-		if ( ! isset( $_REQUEST[$this->slug.'-submitted'] ) ) {
+		if ( ! isset( $_REQUEST["{$this->slug}/submitted"] ) ) {
 			return;
 		}
 
 		if ( empty( $_REQUEST["{$this->package}/nonce"] ) ) {
-			$_REQUEST["{$this->package}/error"] = __( 'Nonce is missing!', $this->package );
-			return;
+			$_REQUEST["{$this->package}/process/error"] = __( 'Nonce is missing!', $this->package );
+			if ( $this->args['ajax'] ) {
+				wp_send_json( [ 'response' => false ] );
+				wp_die();
+			} else {
+				return;
+			}
 		}
 
-		if ( ! wp_verify_nonce( $_REQUEST["{$this->package}/nonce"], esc_attr( $this->nonce['action'] ) ) ) {
-			$_REQUEST["{$this->package}/error"] = __( 'Invalid nonce!', $this->package );
-			return;
+		if ( $this->args['ajax'] ) {
+			check_ajax_referer( $this->nonce['action'], "{$this->package}/nonce" );
+		} else {
+			if ( ! wp_verify_nonce( $_REQUEST["{$this->package}/nonce"], esc_attr( $this->nonce['action'] ) ) ) {
+				$_REQUEST["{$this->package}/process/error"] = __('Invalid nonce!', $this->package);
+				if ( $this->args['ajax'] ) {
+					wp_send_json( ['response' => false] );
+					wp_die();
+				} else {
+					return;
+				}
+			}
 		}
-
-		$_REQUEST["{$this->package}/success"] = __( 'Form successfully submitted!', $this->package );
 
 		if ( ! is_null( $this->args['callback'] ) && is_callable( $this->args['callback'] ) ) {
-			call_user_func( $this->args['callback'], stripslashes_deep( $_REQUEST ) );
+			$response = call_user_func( $this->args['callback'], stripslashes_deep( $_REQUEST ) );
+		} else {
+			$response = false;
 		}
 
-		return;
+		if ( $response ) {
+			$_REQUEST["{$this->package}/process/success"] = __( 'Form successfully submitted!', $this->package );
+		} else {
+			$_REQUEST["{$this->package}/process/error"] = __( 'An error occurred while processing the form data.', $this->package );
+		}
+
+		if ( $this->args['ajax'] ) {
+			wp_send_json( [ 'response' => $response ] );
+			wp_die();
+		}
 	}
 
 	/**
@@ -273,7 +298,7 @@ class Forma {
 	protected function build_sections() {
 		if ( ! empty( $this->sections ) ) {
 			foreach ( $this->sections as $section ) {
-				echo '<fieldset id="'.$section['id'].'" class="'.$section['class'].'">';
+				echo '<fieldset id="'.$section['id'].'-wrapper" class="section-wrapper '.$section['class'].'">';
 				if ( isset( $this->fields[$section['id']] ) ) {
 					foreach ( $this->fields[$section['id']] as $field ) {
 						$this->build_field( $field );
@@ -308,7 +333,7 @@ class Forma {
 				$build = call_user_func( [ $this, $callback ], $field );
 			}
 		}
-		echo apply_filters( "{$this->package}/build_field", $build, $field, $this );
+		echo apply_filters( "{$this->package}/build/field", $build, $field, $this );
 	}
 
 	/**
@@ -337,13 +362,11 @@ class Forma {
 
 	/**
 	 * Build form submit field
-	 *
-	 * @param string $value
 	 */
-	protected function build_submit_field( $value = '' ) {
+	protected function build_submit_field() {
 		$this->build_field( [
 			'type'  => 'submit',
-			'value' => ! empty( $value ) ? esc_attr( $value ) : __( 'Send', $this->package ),
+			'value' => $this->args['button_text'],
 		] );
 	}
 
@@ -365,7 +388,7 @@ class Forma {
 			'url',
 			'text',
 		];
-		return apply_filters( "{$this->package}/field_types", $field_types );
+		return apply_filters( "{$this->package}/field/types", $field_types );
 	}
 
 	/**
@@ -388,7 +411,7 @@ class Forma {
 			return '';
 		}
 
-		return sprintf( '<div><input type="%1$s" name="%2$s" value="%3$s"></div>', esc_attr( $type ), esc_attr( $name ), esc_attr( $value ) );
+		return sprintf( '<input type="%1$s" name="%2$s" value="%3$s">', esc_attr( $type ), esc_attr( $name ), esc_attr( $value ) );
 	}
 
 	/**
@@ -425,7 +448,7 @@ class Forma {
 
 		extract( $field );
 
-		return sprintf( '<div><input type="%1$s" id="%1$s" value="%2$s"></div>', esc_attr( $type ), esc_attr( $value ) );
+		return sprintf( '<div id="submit-wrapper"><input type="%1$s" id="%1$s" value="%2$s" class="button button-primary"></div>', esc_attr( $type ), esc_attr( $value ) );
 	}
 
 	/**
@@ -433,7 +456,8 @@ class Forma {
 	 *   'type'    => 'checkbox', (required)
 	 *   'id'      => '',         (required)
 	 *   'label'   => '',
-	 *   'value'   => '',
+	 *   'current' => '',
+	 *   'style'   => '',
 	 *   'desc'    => '',
 	 *   'required => false,
 	 * ];
@@ -451,17 +475,18 @@ class Forma {
 			return '';
 		}
 
-		$value = ! empty( $value ) ? esc_attr( $value ) : 'off';
+		$current = ! empty( $current ) ? esc_attr( $current ) : 'off';
 
-		$html = '<div>';
+		$html = '<div id="'.esc_attr( $id ).'-wrapper" class="field-wrapper">';
 		if ( ! empty( $label ) ) {
 			$html .= sprintf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_attr( $label ) );
 		}
 		$html .= sprintf( '<input type="hidden" name="%1$s" value="off" />', esc_attr( $id ) );
 		$html .= sprintf(
-			'<input type="checkbox" id="%1$s" name="%1$s" value="on" %2$s %3$s />',
+			'<input type="checkbox" id="%1$s" name="%1$s" value="on" style="%2$s" %3$s %4$s />',
 			esc_attr( $id ),
-			checked( $value, 'on', false ),
+			! empty( $style ) ? esc_attr( $style ) : '',
+			checked( $current, 'on', false ),
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
 		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
@@ -476,6 +501,7 @@ class Forma {
 	 *   'id'       => '',    (required)
 	 *   'label'    => '',
 	 *   'value'    => '',
+	 *   'style'    => '',
 	 *   'pattern'  => '',
 	 *   'required' => false,
 	 *   'desc'     => '',
@@ -494,14 +520,15 @@ class Forma {
 			return '';
 		}
 
-		$html = '<div>';
+		$html = '<div id="'.esc_attr( $id ).'-wrapper" class="field-wrapper">';
 		if ( ! empty( $label ) ) {
 			$html .= sprintf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_attr( $label ) );
 		}
 		$html .= sprintf(
-			'<input type="tel" id="%1$s" name="%1$s" value="%2$s" %3$s %4$s />',
+			'<input type="tel" id="%1$s" name="%1$s" value="%2$s" style="%3$s" %4$s %5$s />',
 			esc_attr( $id ),
 			! empty( $value ) ? esc_attr( $value ) : '',
+			! empty( $style ) ? esc_attr( $style ) : '',
 			! empty( $pattern ) ? 'pattern="'.esc_attr( $pattern ).'"' : '',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
@@ -517,6 +544,7 @@ class Forma {
 	 *   'id'       => '',       (required)
 	 *   'label'    => '',
 	 *   'value'    => '',
+	 *   'style'    => '',
 	 *   'pattern'  => '',
 	 *   'required' => false,
 	 *   'desc'     => '',
@@ -535,14 +563,15 @@ class Forma {
 			return '';
 		}
 
-		$html = '<div>';
+		$html = '<div id="'.esc_attr( $id ).'-wrapper" class="field-wrapper">';
 		if ( ! empty( $label ) ) {
 			$html .= sprintf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_attr( $label ) );
 		}
 		$html .= sprintf(
-			'<input type="number" id="%1$s" name="%1$s" value="%2$s" %3$s %4$s />',
+			'<input type="number" id="%1$s" name="%1$s" value="%2$s" style="%3$s" %4$s %5$s />',
 			esc_attr( $id ),
 			! empty( $value ) ? esc_attr( $value ) : '',
+			! empty( $style ) ? esc_attr( $style ) : '',
 			! empty( $pattern ) ? 'pattern="'.esc_attr( $pattern ).'"' : '',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
@@ -558,6 +587,7 @@ class Forma {
 	 *   'id'       => '',      (required)
 	 *   'label'    => '',
 	 *   'value'    => '',
+	 *   'style'    => '',
 	 *   'required' => false,
 	 *   'desc'     => '',
 	 * ];
@@ -575,14 +605,15 @@ class Forma {
 			return '';
 		}
 
-		$html = '<div>';
+		$html = '<div id="'.esc_attr( $id ).'-wrapper" class="field-wrapper">';
 		if ( ! empty( $label ) ) {
 			$html .= sprintf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_attr( $label ) );
 		}
 		$html .= sprintf(
-			'<input type="email" id="%1$s" name="%1$s" value="%2$s" %3$s />',
+			'<input type="email" id="%1$s" name="%1$s" value="%2$s" style="%3$s" %4$s />',
 			esc_attr( $id ),
 			! empty( $value ) ? esc_attr( $value ) : '',
+			! empty( $style ) ? esc_attr( $style ) : '',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
 		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
@@ -597,6 +628,7 @@ class Forma {
 	 *   'id'       => '',          (required)
 	 *   'label'    => '',
 	 *   'value'    => 'yyyy-mm-dd',
+	 *   'style'    => '',
 	 *   'required' => false,
 	 *   'desc'     => '',
 	 * ];
@@ -614,14 +646,15 @@ class Forma {
 			return '';
 		}
 
-		$html = '<div>';
+		$html = '<div id="'.esc_attr( $id ).'-wrapper" class="field-wrapper">';
 		if ( ! empty( $label ) ) {
 			$html .= sprintf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_attr( $label ) );
 		}
 		$html .= sprintf(
-			'<input type="date" id="%1$s" name="%1$s" value="%2$s" %3$s />',
+			'<input type="date" id="%1$s" name="%1$s" value="%2$s" style="%3$s" %4$s />',
 			esc_attr( $id ),
-			! empty( $value ) ? esc_attr( $value ) : '',
+			! empty( $value ) ? date( 'Y-m-d', strtotime( esc_attr( $value ) ) ) : '',
+			! empty( $style ) ? esc_attr( $style ) : '',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
 		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
@@ -636,6 +669,7 @@ class Forma {
 	 *   'id'       => '',       (required)
 	 *   'label'    => '',
 	 *   'options'  => [],       (accepts callback function)
+	 *   'style'    => '',
 	 *   'current'  => '',
 	 *   'required' => false,
 	 *   'multiple' => false,
@@ -655,28 +689,31 @@ class Forma {
 			return '';
 		}
 
-		$html = '<div>';
+		$html = '<div id="'.esc_attr( $id ).'-wrapper" class="field-wrapper">';
 		if ( ! empty( $label ) ) {
 			$html .= sprintf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_attr( $label ) );
 		}
 		$html .= sprintf(
-			'<select type="date" id="%1$s" name="%1$s" value="%2$s" %3$s>',
+			'<select id="%1$s" name="%1$s" style="%2$s" %3$s %4$s>',
 			esc_attr( $id ),
-			! empty( $value ) ? esc_attr( $value ) : '',
+			! empty( $style ) ? esc_attr( $style ) : '',
 			! empty( $required ) && true === $required ? 'required' : '',
 			! empty( $multiple ) && true === $multiple ? 'multiple' : ''
 		);
+		$html .= sprintf( '<option value="">%s</option>', esc_html( __( 'Select...', $this->package ) ) );
 		if ( ! empty( $options ) ) {
-			if ( is_object( $options[0] ) && is_callable( $options ) ) {
+			if ( is_callable( $options ) ) {
 				$options = call_user_func( $options );
 			}
-			foreach ( $options as $key => $option ) {
-				if ( ! empty( $multiple ) && is_array( $current ) ) {
-					$selected = in_array( $key, $current ) ? ' selected' : '';
-					printf( '<option value="%s"%s>%s</option>', esc_attr( $key ), esc_attr( $selected ), esc_html( $option ) );
-				} else {
-					$current = ! empty( $current ) ? esc_attr( $current ) : '';
-					printf( '<option value="%s"%s>%s</option>', esc_attr( $key ), esc_attr( selected( $current, $key, false ) ), esc_html( $option ) );
+			if ( is_array( $options ) ) {
+				foreach ( $options as $key => $option ) {
+					if ( ! empty( $multiple ) && is_array( $current ) ) {
+						$selected = in_array( $key, $current ) ? ' selected' : '';
+						$html    .= sprintf( '<option value="%s"%s>%s</option>', esc_attr( $key ), esc_attr( $selected ), esc_html( $option ) );
+					} else {
+						$current = ! empty( $current ) ? esc_attr( $current ) : '';
+						$html   .= sprintf( '<option value="%s"%s>%s</option>', esc_attr( $key ), esc_attr( selected( $current, $key, false ) ), esc_html( $option ) );
+					}
 				}
 			}
 		}
@@ -695,6 +732,7 @@ class Forma {
 	 *   'cols'     => '',
 	 *   'rows'     => '',
 	 *   'value'    => '',
+	 *   'style'    => '',
 	 *   'required' => false,
 	 *   'desc'     => '',
 	 * ];
@@ -712,15 +750,16 @@ class Forma {
 			return '';
 		}
 
-		$html = '<div>';
+		$html = '<div id="'.esc_attr( $id ).'-wrapper" class="field-wrapper">';
 		if ( ! empty( $label ) ) {
 			$html .= sprintf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_attr( $label ) );
 		}
 		$html .= sprintf(
-			'<textarea id="%1$s" name="%1$s" cols="%2$s" rows="%3$s" %4$s>%5$s</textarea>',
+			'<textarea id="%1$s" name="%1$s" cols="%2$s" rows="%3$s" style="%4$s" %5$s>%6$s</textarea>',
 			esc_attr( $id ),
 			! empty( $cols ) ? esc_attr( $cols ) : '',
 			! empty( $rows ) ? esc_attr( $rows ) : '',
+			! empty( $style ) ? esc_attr( $style ) : '',
 			! empty( $required ) && true === $required ? 'required' : '',
 			! empty( $value ) ? esc_attr( $value ) : ''
 		);
@@ -736,6 +775,7 @@ class Forma {
 	 *   'id'       => '',    (required)
 	 *   'label'    => '',
 	 *   'value'    => '',
+	 *   'style'    => '',
 	 *   'pattern'  => '',
 	 *   'required' => false,
 	 *   'desc'     => '',
@@ -754,14 +794,15 @@ class Forma {
 			return '';
 		}
 
-		$html = '<div>';
+		$html = '<div id="'.esc_attr( $id ).'-wrapper" class="field-wrapper">';
 		if ( ! empty( $label ) ) {
 			$html .= sprintf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_attr( $label ) );
 		}
 		$html .= sprintf(
-			'<input type="url" id="%1$s" name="%1$s" value="%2$s" %3$s %4$s />',
+			'<input type="url" id="%1$s" name="%1$s" value="%2$s" style="%3$s" %4$s %5$s />',
 			esc_attr( $id ),
 			! empty( $value ) ? esc_attr( $value ) : '',
+			! empty( $style ) ? esc_attr( $style ) : '',
 			! empty( $pattern ) ? 'pattern="'.esc_attr( $pattern ).'"' : 'pattern="https://.*"',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
@@ -777,6 +818,7 @@ class Forma {
 	 *   'id'       => '',     (required)
 	 *   'label'    => '',
 	 *   'value'    => '',
+	 *   'style'    => '',
 	 *   'pattern'  => '',
 	 *   'required' => false,
 	 *   'desc'     => '',
@@ -795,14 +837,15 @@ class Forma {
 			return '';
 		}
 
-		$html = '<div>';
+		$html = '<div id="'.esc_attr( $id ).'-wrapper" class="field-wrapper">';
 		if ( ! empty( $label ) ) {
 			$html .= sprintf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_attr( $label ) );
 		}
 		$html .= sprintf(
-			'<input type="text" id="%1$s" name="%1$s" value="%2$s" %3$s %4$s />',
+			'<input type="text" id="%1$s" name="%1$s" value="%2$s" style="%3$s" %4$s %5$s />',
 			esc_attr( $id ),
 			! empty( $value ) ? esc_attr( $value ) : '',
+			! empty( $style ) ? esc_attr( $style ) : '',
 			! empty( $pattern ) ? 'pattern="'.esc_attr( $pattern ).'"' : '',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
