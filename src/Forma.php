@@ -261,7 +261,7 @@ class Forma {
 		}
 
 		if ( ! wp_verify_nonce( $_REQUEST["{$this->package}/nonce"], esc_attr( $this->nonce['action'] ) ) ) {
-			$_REQUEST["{$this->package}/process/error"] = __('Invalid nonce!', $this->package);
+			$_REQUEST["{$this->package}/process/error"] = __( 'Invalid nonce!', $this->package );
 			if ( $this->args['ajax'] ) {
 				wp_send_json( ['response' => false] );
 				wp_die();
