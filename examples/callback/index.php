@@ -21,7 +21,7 @@ class myForm {
 			'add-car',
 			[
 				'title'    => __( 'Add Car', 'textdomain' ),
-				'callback' => array( $this, 'add_car_process_callback' ),
+				'callback' => [ $this, 'add_car_process_callback' ],
 				'nonce'    => true,
 			]
 		);
