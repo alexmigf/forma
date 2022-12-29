@@ -132,7 +132,7 @@ function new_form_process_callback( $request ) {
 
 	$response = false;
 	if ( ! empty( $request ) ) {
-		$response = $this->database->insert( $request );
+		$response = $database->insert( $request );
 	}
 	return $response;
 }
@@ -178,10 +178,67 @@ function ajax_new_form_process_callback( $request ) {
 	if ( ! empty( $request ) ) {
 		$response = [];
 		foreach ( $request as $value ) {
-			$response[] = $this->do_something_func( $value );
+			$response[] = do_something_func( $value );
 		}
 	}
 	return $response;
+}
+```
+
+## Passing values to fields
+
+If you require to display the current saved data in the fields it's also possible.
+
+```php
+
+$data = $database->get_entries();
+$forma->add_fields( form_fields( $data ), $section_id = 'profile' );
+
+function form_fields( $data = [] ) {
+	return [
+		[
+			'type'     => 'text',
+			'id'       => 'first_name',
+			'label'    => __( 'First name', 'phone-book' ),
+			'value'    => isset( $data['first_name'] ) ? $data['first_name'] : '',
+			'required' => true,
+		],
+		[
+			'type'     => 'text',
+			'id'       => 'last_name',
+			'label'    => __( 'Last name', 'phone-book' ),
+			'value'    => isset( $data['last_name'] ) ? $data['last_name'] : '',
+			'required' => true,
+		],
+		[
+			'type'     => 'text',
+			'id'       => 'company',
+			'label'    => __( 'Company', 'phone-book' ),
+			'value'    => isset( $data['company'] ) ? $data['company'] : '',
+			'required' => false,
+		],
+		[
+			'type'     => 'text',
+			'id'       => 'position',
+			'label'    => __( 'Position', 'phone-book' ),
+			'value'    => isset( $data['position'] ) ? $data['position'] : '',
+			'required' => false,
+		],
+		[
+			'type'     => 'email',
+			'id'       => 'email',
+			'label'    => __( 'Email', 'phone-book' ),
+			'value'    => isset( $data['email'] ) ? $data['email'] : '',
+			'required' => false,
+		],
+		[
+			'type'     => 'tel',
+			'id'       => 'phone_number',
+			'label'    => __( 'Phone number', 'phone-book' ),
+			'value'    => isset( $data['phone_number'] ) ? $data['phone_number'] : '',
+			'required' => false,
+		],
+	];
 }
 ```
 
