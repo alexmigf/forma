@@ -43,7 +43,7 @@ class Forma {
 	 *
 	 * @var string
 	 */
-	protected $slug;
+	public $slug;
 
 	/**
 	 * The form args.
@@ -94,22 +94,17 @@ class Forma {
 			'classes'     => isset( $args['classes'] ) ? esc_attr( $args['classes'] ) : '',
 			'action'      => isset( $args['action'] ) ? esc_attr( $args['action'] ) : '',
 			'method'      => isset( $args['method'] ) && in_array( strtolower( $args['method'] ), [ 'post', 'get' ] ) ? esc_attr( strtolower( $args['method'] ) ) : 'post',
-			'ajax'        => isset( $args['ajax'] ) && true === $args['ajax'] ? true : false,
 			'callback'    => isset( $args['callback'] ) && is_array( $args['callback'] ) && count( $args['callback'] ) == 2 ? $args['callback'] : null,
 			'nonce'       => isset( $args['nonce'] ) && true === $args['nonce'] ? $this->add_nonce_field() : false,
 			'button_text' => isset( $args['button_text'] ) ? esc_attr( $args['button_text'] ) : __( 'Send', $this->package ),
 		];
-
-		if ( $this->args['ajax'] ) {
-			add_action( 'wp_ajax_'.$this->slug, [ $this, 'process' ] );
-		}
 	}
 
 	/**
 	 * Render the form.
 	 */
 	public function render() {
-		if ( ! $this->args['ajax'] && empty( $this->args['action'] ) ) {
+		if ( empty( $this->args['action'] ) ) {
 			$this->process();
 			$this->is_submitted();
 		}
@@ -252,22 +247,12 @@ class Forma {
 
 		if ( empty( $_REQUEST["{$this->package}/nonce"] ) ) {
 			$_REQUEST["{$this->package}/process/error"] = __( 'Nonce is missing!', $this->package );
-			if ( $this->args['ajax'] ) {
-				wp_send_json( [ 'response' => false ] );
-				wp_die();
-			} else {
-				return;
-			}
+			return;
 		}
 
 		if ( ! wp_verify_nonce( $_REQUEST["{$this->package}/nonce"], esc_attr( $this->nonce['action'] ) ) ) {
 			$_REQUEST["{$this->package}/process/error"] = __( 'Invalid nonce!', $this->package );
-			if ( $this->args['ajax'] ) {
-				wp_send_json( ['response' => false] );
-				wp_die();
-			} else {
-				return;
-			}
+			return;
 		}
 
 		if ( ! is_null( $this->args['callback'] ) && is_callable( $this->args['callback'] ) ) {
@@ -280,11 +265,6 @@ class Forma {
 			$_REQUEST["{$this->package}/process/success"] = __( 'Form successfully submitted!', $this->package );
 		} else {
 			$_REQUEST["{$this->package}/process/error"] = __( 'An error occurred while processing the form data.', $this->package );
-		}
-
-		if ( $this->args['ajax'] ) {
-			wp_send_json( [ 'response' => $response ] );
-			wp_die();
 		}
 	}
 

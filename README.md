@@ -16,7 +16,6 @@ $args = [
 	'classes'     => '',              // additional CSS form classes (default: '')
 	'action'      => '',              // file to process the form data (default: '')
 	'method'      => 'post',          // the form request method (default: 'post')
-	'ajax'        => false,           // ajax form request handling (default: false)
 	'callback'    => null,            // callback function to process the form data (default: null)
 	'nonce'       => true,            // nonce validation, if data is handled by this package (default: false)
 	'button_text' => 'Send',          // submit button text (default: Send)
@@ -190,53 +189,6 @@ function new_form_process_callback( $request ) {
 	$response = false;
 	if ( ! empty( $request ) ) {
 		$response = $database->insert( $request );
-	}
-	return $response;
-}
-```
-
-If you prefer you could handle the data from an AJAX request as well. The principle is the same as the above callback function, you just need to return the processed data instead of a `bool` and it will be sent back to the AJAX function.
-
-AJAX request example:
-
-```js
-jQuery( function( $ ) {
-
-	let id = 'new-form';
-	$( '#alexmigf/forma/'+id ).on( 'submit', function( e ) {
-		let data = $( this ).serialize();
-		$.ajax( {
-			url: ajaxUrl,
-			data: data,
-			type: 'POST',
-			cache: false,
-			success: function( response ) {
-				console.log( response );
-
-				// do your stuff here with the response data
-			},
-			error: function( xhr, status, error ) {
-				console.log( error );
-			},
-		} );
-	} );
-
-} );
-```
-
-Callback handling example:
-
-```php
-function ajax_new_form_process_callback( $request ) {
-	// $request contains the data to be processed
-	// do your stuff and then return the data to the AJAX function
-
-	$response = false;
-	if ( ! empty( $request ) ) {
-		$response = [];
-		foreach ( $request as $value ) {
-			$response[] = do_something_func( $value );
-		}
 	}
 	return $response;
 }
