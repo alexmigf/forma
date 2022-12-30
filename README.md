@@ -179,7 +179,7 @@ function form_fields( $data = [] ) {
 
 ## Process callback
 
-If a form callback function is provided, the nonce validation is done inside the `alexmigf\forma package`, which returns the request data to be processed by the callback.
+If a form callback function is provided, the nonce validation is done inside the `alexmigf\forma` package, which returns the request data to be processed by the callback.
 
 ```php
 function new_form_process_callback( $request ) {
