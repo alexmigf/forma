@@ -6,6 +6,12 @@ WordPress Admin simple form API composer package
 - PHP >= 7.0
 - WordPress >= 4.4
 
+## Install
+
+```shell
+composer require alexmigf/forma
+```
+
 ## Usage
 
 Configure the form settings first
