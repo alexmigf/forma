@@ -90,13 +90,14 @@ class Forma {
 		$this->id   = ! empty( $id ) ? esc_attr( $id ) : wp_rand( 1, 16 );
 		$this->slug = "{$this->package}/{$this->id}";
 		$this->args = [
-			'title'       => isset( $args['title'] ) ? esc_attr( $args['title'] ) : '',
-			'classes'     => isset( $args['classes'] ) ? esc_attr( $args['classes'] ) : '',
-			'action'      => isset( $args['action'] ) ? esc_attr( $args['action'] ) : '',
-			'method'      => isset( $args['method'] ) && in_array( strtolower( $args['method'] ), [ 'post', 'get' ] ) ? esc_attr( strtolower( $args['method'] ) ) : 'post',
-			'callback'    => isset( $args['callback'] ) && is_array( $args['callback'] ) && count( $args['callback'] ) == 2 ? $args['callback'] : null,
-			'nonce'       => isset( $args['nonce'] ) && true === $args['nonce'] ? $this->add_nonce_field() : false,
-			'button_text' => isset( $args['button_text'] ) ? esc_attr( $args['button_text'] ) : __( 'Send', $this->package ),
+			'title'        => isset( $args['title'] ) ? esc_attr( $args['title'] ) : '',
+			'classes'      => isset( $args['classes'] ) ? esc_attr( $args['classes'] ) : '',
+			'action'       => isset( $args['action'] ) ? esc_attr( $args['action'] ) : '',
+			'method'       => isset( $args['method'] ) && in_array( strtolower( $args['method'] ), [ 'post', 'get' ] ) ? esc_attr( strtolower( $args['method'] ) ) : 'post',
+			'callback'     => isset( $args['callback'] ) && is_array( $args['callback'] ) && count( $args['callback'] ) == 2 ? $args['callback'] : null,
+			'nonce'        => isset( $args['nonce'] ) && true === $args['nonce'] ? $this->add_nonce_field() : false,
+			'button_text'  => isset( $args['button_text'] ) ? esc_attr( $args['button_text'] ) : __( 'Send', $this->package ),
+			'redirect_uri' => isset( $args['redirect_uri'] ) ? esc_attr( $args['redirect_uri'] ) : '',
 		];
 	}
 
@@ -233,7 +234,8 @@ class Forma {
 				<p><?= $notice['message']; ?></p>
 			</div>
 			<?php
-			echo "<meta http-equiv='refresh' content='2'>";
+			$content = ! empty( $this->args['redirect_uri'] ) ? "2;url={$this->args['redirect_uri']}" : '2';
+			echo '<meta http-equiv="refresh" content='.$content.'>';
 		}
 	}
 
