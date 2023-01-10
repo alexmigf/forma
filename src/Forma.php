@@ -98,6 +98,7 @@ class Forma {
 			'nonce'        => isset( $args['nonce'] ) && true === $args['nonce'] ? $this->add_nonce_field() : false,
 			'button_text'  => isset( $args['button_text'] ) ? esc_attr( $args['button_text'] ) : __( 'Send', $this->package ),
 			'redirect_uri' => isset( $args['redirect_uri'] ) ? esc_attr( $args['redirect_uri'] ) : '',
+			'messages'     => isset( $args['messages'] ) && is_array( $args['messages'] ) && ( array_key_exists( 'error', $args['messages'] ) || array_key_exists( 'success', $args['messages'] ) ) ? $args['messages'] : null,
 		];
 	}
 
@@ -264,9 +265,9 @@ class Forma {
 		}
 
 		if ( $response ) {
-			$_REQUEST["{$this->package}/process/success"] = __( 'Form successfully submitted!', $this->package );
+			$_REQUEST["{$this->package}/process/success"] = ! empty( $this->args['messages']['success'] ) ? esc_attr( $this->args['messages']['success'] ) : __( 'Form successfully submitted!', $this->package );
 		} else {
-			$_REQUEST["{$this->package}/process/error"] = __( 'An error occurred while processing the form data.', $this->package );
+			$_REQUEST["{$this->package}/process/error"] = ! empty( $this->args['messages']['error'] ) ? esc_attr( $this->args['messages']['error'] ) : __( 'An error occurred while processing the form data.', $this->package );
 		}
 	}
 
@@ -365,6 +366,7 @@ class Forma {
 			'textarea',
 			'url',
 			'text',
+			'file',
 		];
 		return apply_filters( "{$this->package}/field/types", $field_types );
 	}
@@ -825,6 +827,49 @@ class Forma {
 			! empty( $value ) ? esc_attr( $value ) : '',
 			! empty( $style ) ? esc_attr( $style ) : '',
 			! empty( $pattern ) ? 'pattern="'.esc_attr( $pattern ).'"' : '',
+			! empty( $required ) && true === $required ? 'required' : ''
+		);
+		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
+		$html .= '</div>';
+
+		return $html;
+	}
+
+	/**
+	 * $field = [
+	 *   'type'     => 'file', (required)
+	 *   'id'       => '',     (required)
+	 *   'label'    => '',
+	 *   'value'    => '',
+	 *   'style'    => '',
+	 *   'accept'   => '',
+	 *   'required' => false,
+	 *   'desc'     => '',
+	 * ];
+	 *
+	 * @param array $field
+	 */
+	protected function file_field_callback( $field ) {
+		if ( empty( $field ) ) {
+			return '';
+		}
+
+		extract( $field );
+
+		if ( empty( $id ) ) {
+			return '';
+		}
+
+		$html = '<div id="'.esc_attr( $id ).'-wrapper" class="field-wrapper">';
+		if ( ! empty( $label ) ) {
+			$html .= sprintf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_attr( $label ) );
+		}
+		$html .= sprintf(
+			'<input type="file" id="%1$s" name="%1$s" value="%2$s" style="%3$s" %4$s %5$s />',
+			esc_attr( $id ),
+			! empty( $value ) ? esc_attr( $value ) : '',
+			! empty( $style ) ? esc_attr( $style ) : '',
+			! empty( $accept ) ? 'accept="'.esc_attr( $accept ).'"' : '',
 			! empty( $required ) && true === $required ? 'required' : ''
 		);
 		$html .= ! empty( $desc ) ? sprintf( '<span class="description">%s</span>', esc_html( $desc ) ) : '';
