@@ -90,15 +90,16 @@ class Forma {
 		$this->id   = ! empty( $id ) ? esc_attr( $id ) : wp_rand( 1, 16 );
 		$this->slug = "{$this->package}/{$this->id}";
 		$this->args = [
-			'title'        => isset( $args['title'] ) ? esc_attr( $args['title'] ) : '',
-			'classes'      => isset( $args['classes'] ) ? esc_attr( $args['classes'] ) : '',
-			'action'       => isset( $args['action'] ) ? esc_attr( $args['action'] ) : '',
-			'method'       => isset( $args['method'] ) && in_array( strtolower( $args['method'] ), [ 'post', 'get' ] ) ? esc_attr( strtolower( $args['method'] ) ) : 'post',
-			'callback'     => isset( $args['callback'] ) && is_array( $args['callback'] ) && count( $args['callback'] ) == 2 ? $args['callback'] : null,
-			'nonce'        => isset( $args['nonce'] ) && true === $args['nonce'] ? $this->add_nonce_field() : false,
-			'button_text'  => isset( $args['button_text'] ) ? esc_attr( $args['button_text'] ) : __( 'Send', $this->package ),
-			'redirect_uri' => isset( $args['redirect_uri'] ) ? esc_attr( $args['redirect_uri'] ) : '',
-			'messages'     => isset( $args['messages'] ) && is_array( $args['messages'] ) && ( array_key_exists( 'error', $args['messages'] ) || array_key_exists( 'success', $args['messages'] ) ) ? $args['messages'] : null,
+			'title'        => ! empty( $args['title'] ) ? esc_attr( $args['title'] ) : '',
+			'classes'      => ! empty( $args['classes'] ) ? esc_attr( $args['classes'] ) : '',
+			'action'       => ! empty( $args['action'] ) ? esc_attr( $args['action'] ) : '',
+			'method'       => ! empty( $args['method'] ) && in_array( strtolower( $args['method'] ), [ 'post', 'get' ] ) ? esc_attr( strtolower( $args['method'] ) ) : 'post',
+			'enctype'      => ! empty( $args['enctype'] ) ? esc_attr( $args['enctype'] ) : 'application/x-www-form-urlencoded',
+			'callback'     => ! empty( $args['callback'] ) && is_array( $args['callback'] ) && count( $args['callback'] ) == 2 ? $args['callback'] : null,
+			'nonce'        => ! empty( $args['nonce'] ) && true === $args['nonce'] ? $this->add_nonce_field() : false,
+			'button_text'  => ! empty( $args['button_text'] ) ? esc_attr( $args['button_text'] ) : __( 'Send', $this->package ),
+			'redirect_uri' => ! empty( $args['redirect_uri'] ) ? esc_attr( $args['redirect_uri'] ) : '',
+			'messages'     => ! empty( $args['messages'] ) && is_array( $args['messages'] ) && ( array_key_exists( 'error', $args['messages'] ) || array_key_exists( 'success', $args['messages'] ) ) ? $args['messages'] : null,
 		];
 	}
 
@@ -125,7 +126,7 @@ class Forma {
 			<h3><?= $this->args['title']; ?></h3>
 			<?php endif; ?>
 			<?php do_action( "{$this->package}/before/form", $this ); ?>
-			<form id="<?= $this->slug; ?>" class="<?= $this->args['classes']; ?>" action="<?= $this->args['action']; ?>" method="<?= $this->args['method']; ?>">
+			<form id="<?= $this->slug; ?>" class="<?= $this->args['classes']; ?>" action="<?= $this->args['action']; ?>" method="<?= $this->args['method']; ?>" <?= $this->get_enctype(); ?>>
 				<input type="hidden" name="<?= "{$this->slug}/submitted"; ?>" value="1"></input>
 				<?php
 					do_action( "{$this->package}/before/form/fields", $this );
@@ -237,6 +238,17 @@ class Forma {
 			<?php
 			$content = ! empty( $this->args['redirect_uri'] ) ? "2;url={$this->args['redirect_uri']}" : '2';
 			echo '<meta http-equiv="refresh" content='.$content.'>';
+		}
+	}
+
+	/**
+	 * Get form encoding type
+	 */
+	protected function get_enctype() {
+		if ( $this->args['method'] === 'post' ) {
+			return 'enctype="'.$this->args['enctype'].'"';
+		} else {
+			return '';
 		}
 	}
 
@@ -840,7 +852,6 @@ class Forma {
 	 *   'type'     => 'file', (required)
 	 *   'id'       => '',     (required)
 	 *   'label'    => '',
-	 *   'value'    => '',
 	 *   'style'    => '',
 	 *   'accept'   => '',
 	 *   'required' => false,
@@ -865,9 +876,8 @@ class Forma {
 			$html .= sprintf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_attr( $label ) );
 		}
 		$html .= sprintf(
-			'<input type="file" id="%1$s" name="%1$s" value="%2$s" style="%3$s" %4$s %5$s />',
+			'<input type="file" id="%1$s" name="%1$s" style="%2$s" %3$s %4$s />',
 			esc_attr( $id ),
-			! empty( $value ) ? esc_attr( $value ) : '',
 			! empty( $style ) ? esc_attr( $style ) : '',
 			! empty( $accept ) ? 'accept="'.esc_attr( $accept ).'"' : '',
 			! empty( $required ) && true === $required ? 'required' : ''
