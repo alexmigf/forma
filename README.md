@@ -18,13 +18,16 @@ Configure the form settings first
 
 ```php
 $args = [
-	'title'       => 'My form title', // form title (default: '')
-	'classes'     => '',              // additional CSS form classes (default: '')
-	'action'      => '',              // file to process the form data (default: '')
-	'method'      => 'post',          // the form request method (default: 'post')
-	'callback'    => null,            // callback function to process the form data (default: null)
-	'nonce'       => true,            // nonce validation, if data is handled by this package (default: false)
-	'button_text' => 'Send',          // submit button text (default: Send)
+	'title'        => 'My form title',                    // form title (default: '')
+	'classes'      => '',                                 // additional CSS form classes (default: '')
+	'action'       => '',                                 // file to process the form data (default: '')
+	'method'       => 'post',                             // the form request method (default: 'post')
+	'enctype'      => '',                                 // encoding type (default: 'application/x-www-form-urlencoded')
+	'callback'     => null,                               // callback function to process the form data (default: null)
+	'nonce'        => true,                               // nonce validation, if data is handled by this package (default: false)
+	'button_text'  => 'Send',                             // submit button text (default: Send)
+	'redirect_uri' => '',                                 // URL for redirection after submit (default: '')
+	'messages'     => [ 'error' => '', 'success' => '' ], // form custom  messages (default: null)
 ];
 ```
 
@@ -213,3 +216,4 @@ function new_form_process_callback( $request ) {
 - textarea
 - url
 - text
+- file
